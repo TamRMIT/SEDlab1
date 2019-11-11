@@ -10,7 +10,7 @@ enum ERROR {
 	invalidOperatorInput,
 	divisionByZero,
 	dummyVariableCheck,
-	
+	invalidValueAfterDecimal,
 };
 
 enum OPERATOR {
@@ -21,7 +21,7 @@ enum OPERATOR {
 	arithmeticRemainder,
 };
 
-const int MAXIMUM_LENGTH = 13;
+const int MAXIMUM_LENGTH = 16;
 
 void getExpression(char* expression);
 void checkingAndCalculating(char* expression);
@@ -43,7 +43,7 @@ void exitMessage();
 
 
 void getExpression(char* expression) {
-	cout << "Please enter your arithmetic expression as <arg1><space><op><space><arg2> (enter Exit to stop calculator):" << endl;
+	cout << "Please enter your arithmetic expression as <arg1><space><op><space><arg2>" << endl << "(enter Exit to stop calculator): ";
 	cin.getline(expression, MAXIMUM_LENGTH);
 }
 
@@ -51,7 +51,7 @@ void checkingAndCalculating(char* expression) {
 	string expressionElements[3];
 
 	if (validInput(expression, expressionElements)) {
-		calculatorPerforming((int)stringToInteger(*expressionElements), getOperator(*(expressionElements + 1)), (int) stringToInteger(*(expressionElements + 2)));
+		calculatorPerforming((int)stringToInteger(*expressionElements), getOperator(*(expressionElements + 1)), (int)stringToInteger(*(expressionElements + 2)));
 	}
 }
 
@@ -85,6 +85,9 @@ bool errorDisplaying(int error) {
 		break;
 	case invalidNumberInput:
 		cout << "Invalid number input (please enter integer)" << endl;
+		break;
+	case invalidValueAfterDecimal:
+		cout << "Invalid integer (value after decimal point must be zero to be vali)" << endl;
 		break;
 	case invalidNumberInputRange:
 		cout << "Invalid input range (please enter numbers between -32,768 and 32,767)" << endl;
@@ -132,7 +135,8 @@ bool validInteger(string number)
 	int offset;
 	if (number[0] == '+' || number[0] == '-') {
 		offset = 1;
-	} else {
+	}
+	else {
 		offset = 0;
 	}
 	for (int i = offset; i < number.length(); i++)
@@ -140,7 +144,7 @@ bool validInteger(string number)
 		if (isdigit(number[i]) == 0 && number[i] != '.')
 			return false;
 		if (dotCounting == 1 && number[i] != '0')
-			//errorDisplaying(afterDecimalError);
+			errorDisplaying(invalidValueAfterDecimal);
 			return false;
 		if (number[i] == '.')
 			dotCounting++;
@@ -157,7 +161,8 @@ bool validOperator(string op)
 {
 	if (op.length() != 1) {
 		return false;
-	} else {
+	}
+	else {
 		return (op == "+" || op == "-" || op == "*" || op == "/" || op == "%");
 	}
 }
@@ -176,7 +181,7 @@ void calculatorPerforming(int number1, int op, int number2)
 {
 	switch (op) {
 	case addition:
-		cout << number1 << " + " << number2 << " = " << number1 + number2 << endl; 
+		cout << number1 << " + " << number2 << " = " << number1 + number2 << endl;
 		break;
 	case subtraction:
 		cout << number1 << " - " << number2 << " = " << number1 - number2 << endl;
@@ -187,14 +192,16 @@ void calculatorPerforming(int number1, int op, int number2)
 	case division:
 		if (number2 == 0) {
 			errorDisplaying(divisionByZero);
-		} else {
+		}
+		else {
 			cout << number1 << " / " << number2 << " = " << number1 / number2 << endl;
 		}
 		break;
 	case arithmeticRemainder:
 		if (number2 == 0) {
 			errorDisplaying(divisionByZero);
-		} else {
+		}
+		else {
 			cout << number1 << " % " << number2 << " = " << number1 % number2 << endl;
 		}
 		break;
@@ -208,7 +215,8 @@ string removeDecimalPoint(string initialNumber)
 	{
 		if (initialNumber[i] == '.') {
 			break;
-		} else {
+		}
+		else {
 			number += initialNumber[i];
 		}
 	}
@@ -242,7 +250,7 @@ int main(int argc, char* argv[]) {
 	char exit[] = "Exit";
 
 	getExpression(expression);
-	while (strcmp(expression,exit) != 0) {
+	while (strcmp(expression, exit) != 0) {
 		checkingAndCalculating(expression);
 		getExpression(expression);
 	}
@@ -250,4 +258,3 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
-
