@@ -122,11 +122,11 @@ bool validNumberOfArguments(char* expression) {
 	while (*expression != '\0')
 	{
 		if (*expression == ' ') {
-			++count;
+			count++;
 		}
-		++expression;
+		expression++;
 	}
-	return (++count == 3);
+	return (count++ == 3);
 }
 
 bool validInteger(string number)
