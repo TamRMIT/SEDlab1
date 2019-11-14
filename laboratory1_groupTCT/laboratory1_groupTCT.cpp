@@ -1,218 +1,280 @@
+#include "pch.h"
 #include <iostream>
+#include <string>
 
 using namespace std;
 
-bool checkInteger(string n)
-{
-	int check = 0;
-	int offset;
-	if (n[0] == '+' || n[0] == '-')
-		offset = 1;
-	else offset = 0;
-	for (int i = offset; i < n.length(); i++)
-	{
-		if (isdigit(n[i]) == 0 && n[i] != '.')
-			return false;
-		if (check == 1 && n[i] != '0')
-			return false;
-		if (n[i] == '.')
-			check++;
+
+enum ERROR {
+	invalidNumberOfArguments,
+	invalidNumberInput,
+	invalidNumberInputRange,
+	invalidOperatorInput,
+	divisionByZero,
+	dummyVariableCheck,
+	invalidValueAfterDecimal,
+};
+
+enum OPERATOR {
+	addition,
+	subtraction,
+	multiplication,
+	division,
+	arithmeticRemainder,
+};
+
+void getExpression(char* expression);
+void checkingAndCalculating(char* expression);
+bool validInput(char* expression, string* expressionElements);
+bool errorDisplaying(int error);
+void getElements(char* expression, string* elements);
+bool validNumberOfArguments(char* expression);
+bool validInteger(string n);
+string removeDecimalPoint(string initialNumber);
+bool validRange(double number);
+bool validOperator(string n);
+bool errorChecking(string* elements);
+int getOperator(string op);
+bool errorChecking(string* elements);
+void calculatorPerforming(int number1, int op, int number2);
+double stringToInteger(string initialNumber);
+void exitMessage();
+
+int getNumOfChar(){
+	int count = 0;
+	char c = getchar();
+	while (c != '\n') {
+		c = getchar();
+		++count;
+	}
+	int numChar = count;
+	while (count > -1) {
+		if (cin.unget()) {
+			count--;
+		}
+	}
+	return numChar;
+}
+
+void getExpression(char* expression) {
+	cout << "Please enter your arithmetic expression as <arg1><space><op><space><arg2>" << endl << "(enter Exit to stop calculator): ";
+	int count = getNumOfChar();
+	cin.getline(expression, count + 1);
+}
+
+void checkingAndCalculating(char* expression) {
+	string expressionElements[3];
+	if (validInput(expression, expressionElements)) {
+		calculatorPerforming((int)stringToInteger(*expressionElements), getOperator(*(expressionElements + 1)), (int)stringToInteger(*(expressionElements + 2)));
+	}
+}
+
+bool validInput(char* expression, string* expressionElements) {
+	if (!validNumberOfArguments(expression)) {
+		return errorDisplaying(invalidNumberOfArguments);
+	}
+	else {
+		getElements(expression, expressionElements);
+		return errorChecking(expressionElements);
+	}
+}
+
+bool errorChecking(string* elements) {
+	if (!validInteger(*elements) || !validInteger(*(elements + 2))) {
+		cout << *elements;
+		cout << *(elements + 2);
+		return errorDisplaying(invalidNumberInput);
+	}
+	else if (!validRange(stringToInteger(*elements)) || !validRange(stringToInteger(*(elements + 2)))) {
+		return errorDisplaying(invalidNumberInputRange);
+	}
+	else if (!validOperator(*(elements + 1))) {
+		return errorDisplaying(invalidOperatorInput);
 	}
 	return true;
 }
 
-string removeDecimalPoint(string n)
-{
-	string p;
-	for (int i = 0; i < n.length(); i++)
-	{
-		if (n[i] == '.')
-			break;
-		else
-			p += n[i];
+bool errorDisplaying(int error) {
+	switch (error) {
+	case invalidNumberOfArguments:
+		cout << "Invalid number of arguments" << endl;
+		break;
+	case invalidNumberInput:
+		cout << "Invalid number input (please enter integer)" << endl;
+		break;
+	case invalidValueAfterDecimal:
+		cout << "Invalid integer (value after decimal point must be zero to be vali)" << endl;
+		break;
+	case invalidNumberInputRange:
+		cout << "Invalid input range (please enter numbers between -32,768 and 32,767)" << endl;
+		break;
+	case invalidOperatorInput:
+		cout << "Invalid operator input (operators can be +, -, *, /, %)" << endl;
+		break;
+	case divisionByZero:
+		cout << "Cannot devide by zero" << endl;
+		break;
+	case dummyVariableCheck:
+		cout << "Dummy variables" << endl;
+		break;
 	}
-	return p;
+	return false;
 }
 
-int convertStringToInteger(string n)
+void getElements(char* expression, string* elements) {
+	for (int i = 0; i < 3; i++)
+	{
+		while (*expression != ' ' && *expression != '\0')
+		{
+			elements[i] += *expression;
+			expression++;
+		}
+		expression++;
+	}
+}
+
+bool validNumberOfArguments(char* expression) {
+	int count = 0;
+	while (*expression != '\0')
+	{
+		if (*expression == ' ') {
+			++count;
+		}
+		++expression;
+	}
+	return (++count == 3);
+}
+
+bool validInteger(string number)
 {
-	int number = 0;
+	int dotCounting = 0;
 	int offset;
-	if (n[0] == '-' || n[0] == '+')
+	if (number[0] == '+' || number[0] == '-') {
 		offset = 1;
-	else offset = 0;
-	for (int i = offset; i < n.length(); i++)
-	{
-		number += (n[i] - '0') * (int)pow(10, n.length() - 1 - i);
 	}
-	if (offset == 1 && n[0] == '-')
-		number = -number;
-	return number;
+	else {
+		offset = 0;
+	}
+	for (int i = offset; i < number.length(); i++)
+	{
+		if (isdigit(number[i]) == 0 && number[i] != '.') {
+			return false;
+		}
+		if (dotCounting == 1 && number[i] != '0') {
+			errorDisplaying(invalidValueAfterDecimal);
+			return false;
+		}
+		if (number[i] == '.')
+			dotCounting++;
+	}
+	return true;
 }
 
-bool checkRange(int n)
+bool validRange(double number)
 {
-	if (n < -32768 || n > 32767)
+	return (number >= -32768 && number <= 32767);
+}
+
+bool validOperator(string op)
+{
+	if (op.length() != 1) {
 		return false;
-	else return true;
-}
-
-bool checkOperator(string n)
-{
-	if (n.length() == 1)
-	{
-		if (n == "+" || n == "-" || n == "*" || n == "/" || n == "%")
-			return true;
-		else return false;
 	}
-	else return false;
+	else {
+		return (op == "+" || op == "-" || op == "*" || op == "/" || op == "%");
+	}
 }
 
-int convertOperatorToInteger(string n)
+int getOperator(string op)
 {
-	if (n == "+") return 1;
-	else if (n == "-") return 2;
-	else if (n == "*") return 3;
-	else if (n == "/") return 4;
-	else if (n == "%") return 5;
+	if (op == "+") return addition;
+	else if (op == "-") return subtraction;
+	else if (op == "*") return multiplication;
+	else if (op == "/") return division;
+	else if (op == "%") return arithmeticRemainder;
 	else return 0;
 }
 
-int calculate(int number1, int op, int number2)
+void calculatorPerforming(int number1, int op, int number2)
 {
-	switch (op)
-	{
-	case 1:
-		return number1 + number2;
+	switch (op) {
+	case addition:
+		cout << number1 << " + " << number2 << " = " << number1 + number2 << endl;
 		break;
-	case 2:
-		return number1 - number2;
+	case subtraction:
+		cout << number1 << " - " << number2 << " = " << number1 - number2 << endl;
 		break;
-	case 3:
-		return number1 * number2;
+	case multiplication:
+		cout << number1 << " * " << number2 << " = " << number1 * number2 << endl;
 		break;
-	case 4:
-		if (number2 == 0)
-		{
-			return 0; // dummy value
+	case division:
+		if (number2 == 0) {
+			errorDisplaying(divisionByZero);
 		}
-		else return number1 / number2;
-		break;
-	case 5:
-		if (number2 == 0)
-		{
-			return 0; // dummy value
+		else {
+			cout << number1 << " / " << number2 << " = " << number1 / number2 << endl;
 		}
-		else return number1 % number2;
 		break;
-	default:
-		return 0; // dummy value
+	case arithmeticRemainder:
+		if (number2 == 0) {
+			errorDisplaying(divisionByZero);
+		}
+		else {
+			cout << number1 << " % " << number2 << " = " << number1 % number2 << endl;
+		}
 		break;
 	}
 }
 
-int main(int argc, char* argv[])
+string removeDecimalPoint(string initialNumber)
 {
-	while (true)
+	string number;
+	for (int i = 0; i < initialNumber.length(); i++)
 	{
-		char input[100];
-		cin.getline(input, 100);
-
-		char* p = input;
-		string arg[3]; // break the input into 3 arguments
-		for (int i = 0; i < 3; i++)
-		{
-			while (*p != ' ' && *p != '\0')
-			{
-				arg[i] += *p;
-				p++;
-			}
-			p++;
-		}
-
-		char* s = input;
-		int space = 0; // calculate the ammount of space characters
-		while (*s != '\0')
-		{
-			if (*s == ' ')
-				space++;
-			s++;
-		}
-
-		if (arg[0] == "Exit")
-		{
-			cout << "LABORATORY GROUP TCT" << endl;
-			cout << "s3748840, s3748840@rmit.edu.au, Cuong, Nguyen" << endl;
-			cout << "s3757934, s3757934@rmit.edu.au, Tien, Nguyen" << endl;
-			cout << "s3747274, s3747274@rmit.edu.au, Tam, Nguyen" << endl;
+		if (initialNumber[i] == '.') {
 			break;
 		}
-
-		int number1 = 0;
-		int number2 = 0;
-		int opnumber = 0;
-		int check = 0; // check value
-
-		if (space != 2)
-			cout << "Invalid number of arguments" << endl;
-		else
-		{
-			// Check 1st number
-			if (checkInteger(arg[0]))
-			{
-				number1 = convertStringToInteger(removeDecimalPoint(arg[0]));
-				if (checkRange(number1))
-				{
-					check++;
-				}
-				else
-				{
-					cout << "First number is out of range" << endl;
-				}
-			}
-			else cout << "First number is not an integer" << endl;
-
-			// Check operator
-			if (checkOperator(arg[1]))
-			{
-				opnumber = convertOperatorToInteger(arg[1]);
-				check++;
-			}
-			else cout << "Wrong operator" << endl;
-
-			// Check 2nd number
-			if (checkInteger(arg[2]))
-			{
-				number2 = convertStringToInteger(removeDecimalPoint(arg[2]));
-				if (checkRange(number2))
-				{
-					check++;
-				}
-				else
-				{
-					cout << "Second number is out of range" << endl;
-				}
-			}
-			else cout << "Second number is not an integer" << endl;
-
-			// All arguments must be valid in order to start the calculation
-			if (check != 3)
-			{
-				cout << "Cannot begin calculation" << endl;
-			}
-			else
-			{
-				// The calculation begins
-				if ((calculate(number1, opnumber, number2) == 0 && number2 == 0) && (opnumber == 4 || opnumber == 5))
-				{
-					cout << "Cannot divide by 0" << endl;
-				}
-				else
-				{
-					cout << number1 << " " << arg[1] << " " << number2 << " = " << calculate(number1, opnumber, number2) << endl;
-				}
-			}
+		else {
+			number += initialNumber[i];
 		}
 	}
+	return number;
+}
+
+double stringToInteger(string numberString)
+{
+	numberString = removeDecimalPoint(numberString);
+	double number = 0;
+	int offset;
+	if (numberString[0] == '-' || numberString[0] == '+')
+		offset = 1;
+	else offset = 0;
+	for (int i = offset; i < numberString.length(); i++)
+	{
+		number += (numberString[i] - '0') * (int)pow(10, numberString.length() - 1 - i);
+	}
+	return (numberString[0] == '-') ? -number : number;
+}
+
+void exitMessage() {
+	cout << "LABORATORY GROUP TCT" << endl;
+	cout << "s3748840, s3748840@rmit.edu.au, Cuong, Nguyen" << endl;
+	cout << "s3757934, s3757934@rmit.edu.au, Tien, Nguyen" << endl;
+	cout << "s3747274, s3747274@rmit.edu.au, Tam, Nguyen" << endl;
+}
+
+int main(int argc, char* argv[]) {
+	char expression[] = "";
+	char exit[] = "Exit";
+
+	getExpression(expression);
+	cout << expression;
+	while (strcmp(expression, exit) != 0) {
+		checkingAndCalculating(expression);
+		getExpression(expression);
+		cout << expression;
+	}
+	exitMessage();
+
 	return 0;
 }
