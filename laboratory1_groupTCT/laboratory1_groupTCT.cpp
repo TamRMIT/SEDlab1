@@ -264,11 +264,10 @@ void exitMessage() {
 
 int main(int argc, char* argv[]) {
 	char expression[] = "";
-	char exit[] = "Exit";
 
 	getExpression(expression);
 	cout << expression;
-	while (strcmp(expression, exit) != 0) {
+	while (strcmp(expression, "Exit") != 0) {
 		checkingAndCalculating(expression);
 		getExpression(expression);
 		cout << expression;
