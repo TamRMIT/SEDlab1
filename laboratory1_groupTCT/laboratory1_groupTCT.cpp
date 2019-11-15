@@ -68,7 +68,7 @@ void checkingAndCalculating(char* expression) {
 
 bool validInput(char* expression, string* expressionElements) {
 	if (!validNumberOfArguments(expression)) {
-		return errorDisplaying(invalidNumberOfArguments);
+		return errorDisplaying(invalidExpressionFormat);
 	}
 	else {
 		getElements(expression, expressionElements);
@@ -78,8 +78,6 @@ bool validInput(char* expression, string* expressionElements) {
 
 bool errorChecking(string* elements) {
 	if (!validInteger(*elements) || !validInteger(*(elements + 2))) {
-		cout << *elements;
-		cout << *(elements + 2);
 		return errorDisplaying(invalidNumberInput);
 	}
 	else if (!validRange(stringToInteger(*elements)) || !validRange(stringToInteger(*(elements + 2)))) {
@@ -152,7 +150,7 @@ bool validInteger(string number)
 			return false;
 		}
 		if (dotCounting == 1 && number[i] != '0') {
-			errorDisplaying(invalidValueAfterDecimal);
+			errorDisplaying(invalidExpressionFormat);
 			return false;
 		}
 		if (number[i] == '.')
