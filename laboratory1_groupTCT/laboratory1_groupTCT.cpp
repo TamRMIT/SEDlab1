@@ -1,18 +1,14 @@
 #include "pch.h"
 #include <iostream>
-#include <string>
 
 using namespace std;
 
-
 enum ERROR {
-	invalidNumberOfArguments,
 	invalidNumberInput,
 	invalidNumberInputRange,
 	invalidOperatorInput,
 	divisionByZero,
-	dummyVariableCheck,
-	invalidValueAfterDecimal,
+	invalidExpressionFormat,
 };
 
 enum OPERATOR {
@@ -40,7 +36,7 @@ void calculatorPerforming(int number1, int op, int number2);
 double stringToInteger(string initialNumber);
 void exitMessage();
 
-int getNumOfChar(){
+int getNumOfChar() {
 	int count = 0;
 	char c = getchar();
 	while (c != '\n') {
@@ -58,6 +54,8 @@ int getNumOfChar(){
 
 void getExpression(char* expression) {
 	cout << "Please enter your arithmetic expression as <arg1><space><op><space><arg2>" << endl << "(enter Exit to stop calculator): ";
+	while (cin.get() == ' ') {}
+	cin.unget();
 	int count = getNumOfChar();
 	cin.getline(expression, count + 1);
 }
@@ -71,7 +69,7 @@ void checkingAndCalculating(char* expression) {
 
 bool validInput(char* expression, string* expressionElements) {
 	if (!validNumberOfArguments(expression)) {
-		return errorDisplaying(invalidNumberOfArguments);
+		return errorDisplaying(invalidExpressionFormat);
 	}
 	else {
 		getElements(expression, expressionElements);
@@ -81,8 +79,6 @@ bool validInput(char* expression, string* expressionElements) {
 
 bool errorChecking(string* elements) {
 	if (!validInteger(*elements) || !validInteger(*(elements + 2))) {
-		cout << *elements;
-		cout << *(elements + 2);
 		return errorDisplaying(invalidNumberInput);
 	}
 	else if (!validRange(stringToInteger(*elements)) || !validRange(stringToInteger(*(elements + 2)))) {
@@ -96,14 +92,8 @@ bool errorChecking(string* elements) {
 
 bool errorDisplaying(int error) {
 	switch (error) {
-	case invalidNumberOfArguments:
-		cout << "Invalid number of arguments" << endl;
-		break;
 	case invalidNumberInput:
 		cout << "Invalid number input (please enter integer)" << endl;
-		break;
-	case invalidValueAfterDecimal:
-		cout << "Invalid integer (value after decimal point must be zero to be vali)" << endl;
 		break;
 	case invalidNumberInputRange:
 		cout << "Invalid input range (please enter numbers between -32,768 and 32,767)" << endl;
@@ -114,8 +104,8 @@ bool errorDisplaying(int error) {
 	case divisionByZero:
 		cout << "Cannot devide by zero" << endl;
 		break;
-	case dummyVariableCheck:
-		cout << "Dummy variables" << endl;
+	case invalidExpressionFormat:
+		cout << "Invalid expression format" << endl;
 		break;
 	}
 	return false;
@@ -123,26 +113,50 @@ bool errorDisplaying(int error) {
 
 void getElements(char* expression, string* elements) {
 	for (int i = 0; i < 3; i++)
-	{
-		while (*expression != ' ' && *expression != '\0')
-		{
+	{	
+		if (i == 0 || i == 1) {
+			while (*expression != ' ')
+			{
+				elements[i] += *expression;
+				expression++;
+			}
+		} else {
+			while (*expression != '\0' && *expression != ' ' && *(expression + 1) != ' ')
+			{
+				elements[i] += *expression;
+				expression++;
+			}
 			elements[i] += *expression;
-			expression++;
 		}
 		expression++;
 	}
 }
 
 bool validNumberOfArguments(char* expression) {
-	int count = 0;
+	int countSpace[2] = {0,0};
+	int countElement = 0;
+	int validElement = 3;
 	while (*expression != '\0')
 	{
-		if (*expression == ' ') {
-			++count;
+		if ((*expression != ' ' && *(expression + 1) == ' ') 
+		|| (*expression != ' ' && *(expression + 1) == '\0')) {
+			++countElement;
+			if (countElement > validElement) {
+				return false;
+			}
+		}
+		if (countElement < validElement && *expression == ' ') {
+			++countSpace[countElement - 1];
+			if (countSpace[countElement - 1] > 1) {
+				return false;
+			}
 		}
 		++expression;
 	}
-	return (++count == 3);
+	if (countElement != validElement) {
+		return false;
+	}
+	return true;
 }
 
 bool validInteger(string number)
@@ -161,7 +175,7 @@ bool validInteger(string number)
 			return false;
 		}
 		if (dotCounting == 1 && number[i] != '0') {
-			errorDisplaying(invalidValueAfterDecimal);
+			errorDisplaying(invalidExpressionFormat);
 			return false;
 		}
 		if (number[i] == '.')
@@ -264,15 +278,13 @@ void exitMessage() {
 }
 
 int main(int argc, char* argv[]) {
-	char expression[] = "";
+	char* expression = new char[1024];
 	char exit[] = "Exit";
 
 	getExpression(expression);
-	cout << expression;
 	while (strcmp(expression, exit) != 0) {
 		checkingAndCalculating(expression);
 		getExpression(expression);
-		cout << expression;
 	}
 	exitMessage();
 
