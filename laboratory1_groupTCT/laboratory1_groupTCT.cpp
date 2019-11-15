@@ -5,13 +5,11 @@ using namespace std;
 
 
 enum ERROR {
-	invalidNumberOfArguments,
 	invalidNumberInput,
 	invalidNumberInputRange,
 	invalidOperatorInput,
 	divisionByZero,
-	dummyVariableCheck,
-	invalidValueAfterDecimal,
+	invalidExpressionFormat,
 };
 
 enum OPERATOR {
@@ -95,14 +93,8 @@ bool errorChecking(string* elements) {
 
 bool errorDisplaying(int error) {
 	switch (error) {
-	case invalidNumberOfArguments:
-		cout << "Invalid number of arguments" << endl;
-		break;
 	case invalidNumberInput:
 		cout << "Invalid number input (please enter integer)" << endl;
-		break;
-	case invalidValueAfterDecimal:
-		cout << "Invalid integer (value after decimal point must be zero to be vali)" << endl;
 		break;
 	case invalidNumberInputRange:
 		cout << "Invalid input range (please enter numbers between -32,768 and 32,767)" << endl;
@@ -113,8 +105,8 @@ bool errorDisplaying(int error) {
 	case divisionByZero:
 		cout << "Cannot devide by zero" << endl;
 		break;
-	case dummyVariableCheck:
-		cout << "Dummy variables" << endl;
+	case invalidExpressionFormat:
+		cout << "Invalid expression format" << endl;
 		break;
 	}
 	return false;
@@ -263,7 +255,7 @@ void exitMessage() {
 }
 
 int main(int argc, char* argv[]) {
-	char expression[] = "";
+	char* expression = new char[1024];
 	char exit[] = "Exit";
 
 	getExpression(expression);
