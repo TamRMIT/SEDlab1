@@ -1,5 +1,6 @@
 #include "pch.h"
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -36,15 +37,16 @@ void calculatorPerforming(int number1, int op, int number2);
 double stringToInteger(string initialNumber);
 void exitMessage();
 
+
 int getNumOfChar() {
 	int count = 0;
 	char c = getchar();
-	while (c != '\n') {
+	while (c != '\n') { //count number of characters that user input
 		c = getchar();
 		++count;
 	}
 	int numChar = count;
-	while (count > -1) {
+	while (count > -1) { //return the character that has been got before
 		if (cin.unget()) {
 			count--;
 		}
@@ -54,8 +56,8 @@ int getNumOfChar() {
 
 void getExpression(char* expression) {
 	cout << "Please enter your arithmetic expression as <arg1><space><op><space><arg2>" << endl << "(enter Exit to stop calculator): ";
-	while (cin.get() == ' ') {}
-	cin.unget();
+	while (cin.get() == ' ') {} //remove leading spaces
+	cin.unget(); //return the first character that is different from space that has been got to check
 	int count = getNumOfChar();
 	cin.getline(expression, count + 1);
 }
@@ -68,10 +70,10 @@ void checkingAndCalculating(char* expression) {
 }
 
 bool validInput(char* expression, string* expressionElements) {
-	if (!validNumberOfArguments(expression)) {
+	if (!validNumberOfArguments(expression)) { //check if user input 3 arguments
 		return errorDisplaying(invalidExpressionFormat);
 	}
-	else {
+	else { //split the expression into 3 elements
 		getElements(expression, expressionElements);
 		return errorChecking(expressionElements);
 	}
@@ -112,42 +114,39 @@ bool errorDisplaying(int error) {
 }
 
 void getElements(char* expression, string* elements) {
-	for (int i = 0; i < 3; i++)
-	{	
+	for (int i = 0; i < 3; i++) { //get 3 elements
 		if (i == 0 || i == 1) {
-			while (*expression != ' ')
+			while (*expression != ' ') 
 			{
 				elements[i] += *expression;
 				expression++;
 			}
-		} else {
-			while (*expression != '\0' && *expression != ' ' && *(expression + 1) != ' ')
-			{
+		}
+		else {
+			while (*expression != ' ' && *expression != '\0') { //remove ending spaces
 				elements[i] += *expression;
 				expression++;
 			}
-			elements[i] += *expression;
 		}
 		expression++;
 	}
 }
-
+//check if user enter 3 arguments
 bool validNumberOfArguments(char* expression) {
 	int countSpace[2] = {0,0};
 	int countElement = 0;
 	int validElement = 3;
-	while (*expression != '\0')
-	{
+	while (*expression != '\0') //stop if end of line
+	{	//find the start of each elements
 		if ((*expression != ' ' && *(expression + 1) == ' ') 
-		|| (*expression != ' ' && *(expression + 1) == '\0')) {
+			|| (*expression != ' ' && *(expression + 1) == '\0')) {
 			++countElement;
-			if (countElement > validElement) {
-				return false;
-			}
 		}
-		if (countElement < validElement && *expression == ' ') {
+		if (countElement > validElement) { 
+				return false;
+		} else if (countElement < validElement && *expression == ' ') { //Check spaces between the first and the second element, between the second and the third elements
 			++countSpace[countElement - 1];
-			if (countSpace[countElement - 1] > 1) {
+			if (countSpace[countElement - 1] > 1) { //invalid if more than 1 space in a row
 				return false;
 			}
 		}
@@ -158,25 +157,29 @@ bool validNumberOfArguments(char* expression) {
 	}
 	return true;
 }
-
+//check if user enter valid integers
 bool validInteger(string number)
-{
+{	
 	int dotCounting = 0;
 	int offset;
-	if (number[0] == '+' || number[0] == '-') {
+	if (number[0] != '+' && number[0] != '-') { //check preceding + and -
+		offset = 0;
+	} else if (isdigit(number[1])) { //after preceding + and - must be a digit
 		offset = 1;
 	}
 	else {
-		offset = 0;
+		return false;
 	}
 	for (int i = offset; i < number.length(); i++)
 	{
-		if (isdigit(number[i]) == 0 && number[i] != '.') {
+		if (isdigit(number[i]) == 0 && number[i] != '.') { //check if a character is not a number and is not a dot
 			return false;
 		}
-		if (dotCounting == 1 && number[i] != '0') {
-			errorDisplaying(invalidExpressionFormat);
+		if (dotCounting == 1 && number[i] != '0') { //check if character after dot is not 0
 			return false;
+		}
+		if (dotCounting > 1) { //check if number of dots is more than 1
+			return false;  
 		}
 		if (number[i] == '.')
 			dotCounting++;
@@ -244,8 +247,8 @@ string removeDecimalPoint(string initialNumber)
 {
 	string number;
 	for (int i = 0; i < initialNumber.length(); i++)
-	{
-		if (initialNumber[i] == '.') {
+	{ 
+		if (initialNumber[i] == '.') { //ignoring all of the character from the dot to the end
 			break;
 		}
 		else {
@@ -260,9 +263,9 @@ double stringToInteger(string numberString)
 	numberString = removeDecimalPoint(numberString);
 	double number = 0;
 	int offset;
-	if (numberString[0] == '-' || numberString[0] == '+')
+	if (numberString[0] == '-' || numberString[0] == '+') {
 		offset = 1;
-	else offset = 0;
+	} else { offset = 0; }
 	for (int i = offset; i < numberString.length(); i++)
 	{
 		number += (numberString[i] - '0') * (int)pow(10, numberString.length() - 1 - i);
